@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tennis Tournament</title>
+    <style>body{font-family:sans-serif;margin:20px;}table{border-collapse:collapse;width:100%;}td,th{border:1px solid #ccc;padding:4px;text-align:center;}input{width:40px;}button{cursor:pointer;}</style>
+</head>
+<body>
+<h1>Double Elimination Tournament</h1>
+<section>
+    <h2>Setup</h2>
+    <form id="setup-form">
+        Serves per match: <input type="number" id="serves" value="11" min="1"><br>
+        Player count (even): <input type="number" id="players" value="8" min="2" step="2"><br>
+        Service change interval: <input type="number" id="interval" value="3" min="1"><br>
+        <button type="submit">Initialize</button>
+    </form>
+    <div id="setup-result"></div>
+</section>
+<section>
+    <h2>Groups</h2>
+    <button id="refresh-groups">Refresh</button>
+    <table id="groups-table">
+        <thead><tr><th>Match</th><th>Player1</th><th>Player2</th><th>Score</th><th></th></tr></thead>
+        <tbody></tbody>
+    </table>
+</section>
+<section>
+    <h2>Leaderboard</h2>
+    <button id="refresh-leaderboard">Losers</button>
+    <button id="refresh-winners">Winners</button>
+    <table id="leader-table">
+        <thead><tr><th>Player</th><th>Losses</th><th>Score</th><th>Bracket</th></tr></thead>
+        <tbody></tbody>
+    </table>
+</section>
+<script>
+const api = '';
+
+document.getElementById('setup-form').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const serves = +document.getElementById('serves').value;
+    const players = +document.getElementById('players').value;
+    const interval = +document.getElementById('interval').value;
+    const res = await fetch(api+'/tournament/setup',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({serves_per_match:serves,player_count:players,service_change_interval:interval})
+    });
+    const text = await res.text();
+    document.getElementById('setup-result').textContent=text;
+});
+
+async function getGroups(){
+    const res=await fetch(api+'/tournament/groups');
+    const groups = await res.json();
+    const tbody = document.querySelector('#groups-table tbody');
+    tbody.innerHTML = '';
+    groups.forEach(g=>{
+        const tr=document.createElement('tr');
+        tr.dataset.matchId = g.id;
+        tr.innerHTML = `
+            <td>${g.id} (${g.bracket})</td>
+            <td>${g.player1.id}</td>
+            <td>${g.player2.id}</td>
+            <td class="score-cell">${g.score1||""} - ${g.score2||""}</td>
+            <td>
+                <input type="number" data-id="${g.id}" class="score1" style="width:50px"> - 
+                <input type="number" data-id="${g.id}" class="score2" style="width:50px"> 
+                <button data-id="${g.id}" class="submit-score">OK</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+    // attach handlers
+    document.querySelectorAll('.submit-score').forEach(btn=>{
+        btn.onclick=async ()=>{
+            const id=btn.dataset.id;
+            const s1El=document.querySelector(`.score1[data-id='${id}']`);
+            const s2El=document.querySelector(`.score2[data-id='${id}']`);
+            const s1=s1El.value;
+            const s2=s2El.value;
+            const r=await fetch(api+`/tournament/match?match_id=${id}&score1=${s1}&score2=${s2}`,{method:'POST'});
+            const txt=await r.text();
+            alert(txt);
+            if(r.ok){
+                // update displayed score
+                const tr = document.querySelector(`tr[data-match-id='${id}']`);
+                tr.querySelector('.score-cell').textContent = s1 + ' - ' + s2;
+                // disable inputs/button
+                s1El.disabled=true; s2El.disabled=true; btn.disabled=true;
+            }
+        };
+    });
+}
+document.getElementById('refresh-groups').onclick=getGroups;
+
+
+async function showLeaderboard(path){
+    const res = await fetch(api+path);
+    const data = await res.json();
+    const tbody = document.querySelector('#leader-table tbody');
+    tbody.innerHTML = '';
+    data.forEach(p=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML = `<td>${p.id}</td><td>${p.losses}</td><td>${p.total_score}</td><td>${p.bracket||''}</td>`;
+        tbody.appendChild(tr);
+    });
+}
+document.getElementById('refresh-leaderboard').onclick=()=>showLeaderboard('/tournament/leaderboard/losers');
+document.getElementById('refresh-winners').onclick=()=>showLeaderboard('/tournament/leaderboard/winners');
+</script>
+</body>
+</html>
