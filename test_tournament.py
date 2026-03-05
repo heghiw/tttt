@@ -52,8 +52,11 @@ def test_flow():
     ui = client.get("/")
     assert ui.status_code == 200
     assert "Double Elimination" in ui.text
-    # inline score inputs available
-    assert "Submit" in ui.text and "Player" in ui.text
+    # basic UI controls should be present
+    assert "Initialize" in ui.text
+    assert "Refresh" in ui.text
+    assert "Player1" in ui.text and "Player2" in ui.text
+    assert "submit-score" in ui.text  # score submission button class
 
     # request groups again; eliminated player(s) should not appear in the new grouping
     new_groups = client.get("/tournament/groups").json()

@@ -51,3 +51,4 @@ For an in-depth discussion of the algorithms and data structures used in this se
 - `GET  /tournament/leaderboard/losers` - alias for the same losers list.
 - `GET  /tournament/leaderboard/winners` - retrieve list of active players sorted by wins.
 
+Feel free to extend the logic for persistence, more advanced bracket management, or UI integration.
