@@ -57,6 +57,9 @@ def test_flow():
     assert "Refresh" in ui.text
     assert "Player1" in ui.text and "Player2" in ui.text
     assert "submit-score" in ui.text  # score submission button class
+    # players section and rename controls should be present
+    assert "players-section" in ui.text
+    assert "rename-btn" in ui.text
 
     # request groups again; eliminated player(s) should not appear in the new grouping
     new_groups = client.get("/tournament/groups").json()
@@ -75,3 +78,30 @@ def test_flow():
 
 if __name__ == '__main__':
     test_flow()
+
+
+def test_rename_player():
+    # set up the tournament first
+    setup_resp = client.post("/tournament/setup", json={"serves_per_match": 11, "player_count": 4, "service_change_interval": 3})
+    assert setup_resp.status_code == 200
+
+    # rename player 1
+    resp = client.patch("/tournament/player/1", json={"name": "Alice"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["id"] == 1
+    assert data["name"] == "Alice"
+
+    # rename player 2
+    resp2 = client.patch("/tournament/player/2", json={"name": "Bob"})
+    assert resp2.status_code == 200
+    assert resp2.json()["name"] == "Bob"
+
+    # player name should appear in groups
+    groups = client.get("/tournament/groups").json()
+    names_in_groups = [g["player1"]["name"] for g in groups] + [g["player2"]["name"] for g in groups]
+    assert "Alice" in names_in_groups or "Bob" in names_in_groups
+
+    # rename non-existent player should return 404
+    resp_not_found = client.patch("/tournament/player/999", json={"name": "Ghost"})
+    assert resp_not_found.status_code == 404

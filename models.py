@@ -32,3 +32,7 @@ class TournamentConfig(BaseModel):
 
     # could be extended with more tournament rules in future
 
+
+class PlayerRename(BaseModel):
+    name: str
+

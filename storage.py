@@ -117,4 +117,11 @@ class TournamentState:
         eliminated = [p for p in self.players if p.eliminated]
         return sorted(eliminated, key=lambda p: p.total_score)
 
+    def rename_player(self, player_id: int, name: str) -> Player:
+        for player in self.players:
+            if player.id == player_id:
+                player.name = name
+                return player
+        raise ValueError(f"Player {player_id} not found")
+
 state = TournamentState()

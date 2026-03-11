@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from typing import List
-from models import TournamentConfig, Match, Player
+from models import TournamentConfig, Match, Player, PlayerRename
 from storage import state
 
 app = FastAPI(title="Double Elimination Tournament API")
@@ -81,3 +81,12 @@ def leaderboard_readable():
     for idx, p in enumerate(players, start=1):
         lines.append(f"{idx} | {p.id} | {p.losses} | {p.total_score}")
     return "\n".join(lines)
+
+
+@app.patch("/tournament/player/{player_id}", response_model=Player)
+def rename_player(player_id: int, body: PlayerRename):
+    """Rename a player by their ID."""
+    try:
+        return state.rename_player(player_id, body.name)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))

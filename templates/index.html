@@ -17,6 +17,13 @@
     </form>
     <div id="setup-result"></div>
 </section>
+<section id="players-section" style="display:none">
+    <h2>Players</h2>
+    <table id="players-table">
+        <thead><tr><th>#</th><th>Name</th><th>Rename</th></tr></thead>
+        <tbody></tbody>
+    </table>
+</section>
 <section>
     <h2>Groups</h2>
     <button id="refresh-groups">Refresh</button>
@@ -37,6 +44,8 @@
 <script>
 const api = '';
 
+function playerLabel(p){ return p.name || ('#' + p.id); }
+
 document.getElementById('setup-form').addEventListener('submit', async e=>{
     e.preventDefault();
     const serves = +document.getElementById('serves').value;
@@ -46,9 +55,54 @@ document.getElementById('setup-form').addEventListener('submit', async e=>{
         method:'POST',headers:{'Content-Type':'application/json'},
         body: JSON.stringify({serves_per_match:serves,player_count:players,service_change_interval:interval})
     });
-    const text = await res.text();
-    document.getElementById('setup-result').textContent=text;
+    const data = await res.json();
+    document.getElementById('setup-result').textContent=JSON.stringify(data);
+    if(res.ok && data.players){
+        renderPlayers(data.players);
+    }
 });
+
+function renderPlayers(players){
+    const tbody = document.querySelector('#players-table tbody');
+    tbody.innerHTML = '';
+    players.forEach(p=>{
+        const tr=document.createElement('tr');
+        tr.dataset.playerId = p.id;
+        tr.innerHTML = `
+            <td>${p.id}</td>
+            <td class="player-name-cell">${p.name||''}</td>
+            <td>
+                <input type="text" class="rename-input" placeholder="New name" style="width:120px">
+                <button class="rename-btn" data-id="${p.id}">Rename</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+    document.querySelectorAll('.rename-btn').forEach(btn=>{
+        btn.onclick=async ()=>{
+            const id=btn.dataset.id;
+            const tr=document.querySelector(`tr[data-player-id='${id}']`);
+            const input=tr.querySelector('.rename-input');
+            const name=input.value.trim();
+            if(!name) return;
+            const r=await fetch(api+`/tournament/player/${id}`,{
+                method:'PATCH',
+                headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({name})
+            });
+            if(r.ok){
+                const updated=await r.json();
+                const tr=document.querySelector(`tr[data-player-id='${id}']`);
+                tr.querySelector('.player-name-cell').textContent=updated.name||'';
+                input.value='';
+            } else {
+                const err=await r.text();
+                alert('Error: '+err);
+            }
+        };
+    });
+    document.getElementById('players-section').style.display='';
+}
 
 async function getGroups(){
     const res=await fetch(api+'/tournament/groups');
@@ -60,8 +114,8 @@ async function getGroups(){
         tr.dataset.matchId = g.id;
         tr.innerHTML = `
             <td>${g.id} (${g.bracket})</td>
-            <td>${g.player1.id}</td>
-            <td>${g.player2.id}</td>
+            <td>${playerLabel(g.player1)}</td>
+            <td>${playerLabel(g.player2)}</td>
             <td class="score-cell">${g.score1||""} - ${g.score2||""}</td>
             <td>
                 <input type="number" data-id="${g.id}" class="score1" style="width:50px"> - 
@@ -102,7 +156,7 @@ async function showLeaderboard(path){
     tbody.innerHTML = '';
     data.forEach(p=>{
         const tr=document.createElement('tr');
-        tr.innerHTML = `<td>${p.id}</td><td>${p.losses}</td><td>${p.total_score}</td><td>${p.bracket||''}</td>`;
+        tr.innerHTML = `<td>${playerLabel(p)}</td><td>${p.losses}</td><td>${p.total_score}</td><td>${p.bracket||''}</td>`;
         tbody.appendChild(tr);
     });
 }
