@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Double Elimination Tournament</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>Double Elimination Table Tennis Tournament</h1>
+
+      <section class="card" id="setup">
+        <h2>Initialize</h2>
+        <form id="setup-form">
+          <label>
+            Players (even)
+            <input name="player_count" type="number" min="2" step="2" value="8" />
+          </label>
+          <label>
+            Points to win
+            <input name="serves_per_match" type="number" min="1" step="1" value="11" />
+          </label>
+          <label>
+            Service change interval
+            <input name="service_change_interval" type="number" min="1" step="1" value="3" />
+          </label>
+          <button type="submit">Initialize</button>
+        </form>
+        <button id="refresh" type="button">Refresh</button>
+      </section>
+
+      <section class="card" id="matches">
+        <h2>Upcoming Matches</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Match</th>
+              <th>Round</th>
+              <th>Bracket</th>
+              <th>Player1</th>
+              <th>Player2</th>
+            </tr>
+          </thead>
+          <tbody id="matches-body"></tbody>
+        </table>
+      </section>
+
+      <section class="card" id="report">
+        <h2>Report Result</h2>
+        <form id="report-form">
+          <label>
+            Match ID
+            <input name="match_id" type="number" min="1" step="1" required />
+          </label>
+          <label>
+            Score1
+            <input name="score1" type="number" min="0" step="1" required />
+          </label>
+          <label>
+            Score2
+            <input name="score2" type="number" min="0" step="1" required />
+          </label>
+          <button type="submit" class="submit-score">Submit</button>
+        </form>
+        <pre id="status"></pre>
+      </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
+

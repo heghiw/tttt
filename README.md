@@ -1,6 +1,14 @@
-# Double Elimination Tennis Tournament Backend
+# Double Elimination Table Tennis Tournament Backend
 
 This is a simple FastAPI backend for tracking a double-elimination table tennis (singles) tournament.
+
+## Repository Files
+
+- Report: [`REPORT.md`](REPORT.md) (main submission document), [`REPORT.pdf`](REPORT.pdf) (exported PDF)
+- Backend code: [`backend/main.py`](backend/main.py), [`backend/storage.py`](backend/storage.py), [`backend/models.py`](backend/models.py)
+- UI: [`backend/templates/index.html`](backend/templates/index.html), [`backend/static/app.js`](backend/static/app.js), [`backend/static/styles.css`](backend/static/styles.css)
+- Dependencies: [`requirements.txt`](requirements.txt)
+- Report assets + scripts: [`report_assets/`](report_assets/) (images + helper scripts used by the report)
 
 ## Features
 
@@ -9,7 +17,7 @@ This is a simple FastAPI backend for tracking a double-elimination table tennis 
 - Record match results
 - Compute a leaderboard of eliminated players sorted by total score (double elimination)
 
-For an in-depth discussion of the algorithms and data structures used in this semestral project, see [DOCUMENTATION.md](DOCUMENTATION.md).
+For the IS-211 mandatory assignment submission text, see [`REPORT.md`](REPORT.md).
 
 ## Run Locally
 
@@ -28,17 +36,12 @@ For an in-depth discussion of the algorithms and data structures used in this se
 
 3. Start the server from the repository root:
    ```bash
-   python -m uvicorn main:app --reload
+   python -m uvicorn backend.main:app --reload
    ```
 
 4. Open:
    - UI: `http://localhost:8000/`
    - API docs (Swagger): `http://localhost:8000/docs`
-
-5. (Optional) Run the included smoke test to exercise the API:
-   ```bash
-   python test_tournament.py
-   ```
 
 ## API Endpoints
 
